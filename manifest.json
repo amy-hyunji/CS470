@@ -4,8 +4,10 @@
     "description" : "Screen reader extension that can read and query web elements including texts, buttons, and images.",
     "permissions" : ["<all_urls>", "tts", "tabs"],
     "background" : {
-        "scripts" : ["background.js", "tabs.js", "keycodes.js"],
-        "persistent" : false
+        "scripts" : ["keycodes.js", "tabs.js", "background.js"]
+    },
+    "browser_action" : {
+        "default_title" : "Screen Reader"
     },
     "minimum_chrome_version" : "14",
     "content_scripts" : [
@@ -15,5 +17,6 @@
             "js" : ["keycodes.js", "content_script.js"]
         }
     ],
+    "options_page" : "options.html",
     "manifest_version" : 2
 }
