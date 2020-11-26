@@ -83,7 +83,7 @@ python predict.py
 - https://github.com/GT-Vision-Lab/VQA_LSTM_CNN
 - https://github.com/Cyanogenoid/pytorch-vqa
 
---
+```
 
 [0]: http://vizwiz.org/data/
 [1]: https://arxiv.org/abs/1704.03162
