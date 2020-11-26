@@ -23,7 +23,7 @@ This loss function better aligns to the [VQA evaluation metric][4] used to evalu
 | method       | accuracy |
 |--------------|----------|
 | [VizWiz Paper][0] | 0.475    |
-| **Ours**         | **0.516**    |
+| **Ours**         | **0.516**    |  => deafult.yml이용하면, 이것만큼 절대 안나옴.
 
 
 ## Training and Evaluation
