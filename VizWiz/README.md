@@ -36,7 +36,7 @@ source activate viz_env
 pip install -r requirements.txt
 ```
 
-- Download and extract the [VizWiz dataset][0]
+- Download and extract the [VizWiz dataset](https://vizwiz.org/tasks-and-datasets/vqa/)
 
 ```
 
