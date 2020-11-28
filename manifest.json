@@ -16,7 +16,8 @@
         "default_title": "Take a screen shot you want to ask!"
     },
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "tabs"
     ],
     "icons": {
         "16": "newtab_search16.png",

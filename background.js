@@ -8,12 +8,24 @@
 // because the event page will stay open as long as any screenshot tabs are
 // open.
 var id = 100;
+var ori_tab_url = "";
 
 // Listen for a click on the camera icon. On that click, take a screenshot.
 chrome.browserAction.onClicked.addListener(function () {
 
-    chrome.tabs.captureVisibleTab({ 'format': 'png' }, function (screenshotUrl) {
-        var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + id++)
+    chrome.tabs.query({
+            'active': true,
+            'windowId': chrome.windows.WINDOW_ID_CURRENT
+        },
+        function (tabs) {
+            ori_tab_url = tabs[0].url;
+        }
+    );
+
+    chrome.tabs.captureVisibleTab({
+        'format': 'png'
+    }, function (screenshotUrl) {
+        var viewTabUrl = chrome.extension.getURL('screenshot.html?id=' + id++ + 'tab_url=' + ori_tab_url)
         var targetId = null;
 
         chrome.tabs.onUpdated.addListener(function listener(tabId, changedProps) {
@@ -42,7 +54,9 @@ chrome.browserAction.onClicked.addListener(function () {
             }
         });
 
-        chrome.tabs.create({ url: viewTabUrl }, function (tab) {
+        chrome.tabs.create({
+            url: viewTabUrl
+        }, function (tab) {
             targetId = tab.id;
         });
     });
