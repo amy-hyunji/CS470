@@ -195,5 +195,5 @@ def load_datasets(task_cfg, splits, question, image_height, image_width, tokens)
 
 
 if __mian__=="__name__":
-    model = RunModel(textVQA_config="configs/train-stvqa-eval-stvqa-c3.yml", textVQA_pretrained="data/pretrained-models")
+    model = RunModel(textVQA_config="configs/train-stvqa-eval-stvqa-c3.yml", textVQA_pretrained="data/pretrained-models/best_model.tars")
     print(model.textVQA(question="What is this?",img_path="tools/sam-textvqa-large.png"))
