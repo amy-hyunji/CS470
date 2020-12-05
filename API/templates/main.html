@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Do+Hyeon|Jua&display=swap" rel="stylesheet">
+    <style type="text/css">
+        h1 {
+            color: red;
+            font-family: 'Jua', sans-serif;
+        }
+
+        button {
+            height: 30px;
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 align="center">Ask Your Questions!</h1>
+
+    <form action="http://127.0.0.1:5000/result" method="POST">
+        <div align="center" vertical-align:middle>
+            <p>TEXT <input type="text" name="Text" size="50" /></p>
+            <p> </p>
+            <p> </p>
+            <p>IMG_URL <input type="text" name="img_url" size="50" /></p>
+            <p> </p>
+            <button onclick="submit">Submit</button>
+        </div>
+    </form>
+
+</body>
+
+</html>

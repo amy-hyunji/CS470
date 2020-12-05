@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Do+Hyeon|Jua&display=swap" rel="stylesheet">
+    <style type="text/css">
+        h1 {
+            color: red;
+            font-family: 'Jua', sans-serif;
+        }
+
+        table {
+            width: 600px;
+            height: 200px;
+        }
+
+        button {
+            height: 40px;
+            width: 80px;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    {% for result in results %}
+    <h1 align="center"> TEXT: {{result.Text}} </h1>
+    <h1 align="center"> IMG: {{result.img_url}} </h1>
+
+    <table border=1 border align=center>
+        <tr align=center bgcolor="pink">
+            <th scope="row">RESULT</th>
+            <td>PERCENTAGE (%)</td>
+        </tr>
+        <tr align=center>
+            <th scope="row">{{result.answer1}}</th>
+            <td> {{result.prob1}} </td>
+        </tr>
+        <tr align=center>
+            <th scope="row">{{result.answer2}}</th>
+            <td> {{result.prob2}} </td>
+        </tr>
+        <tr align=center>
+            <th scope="row">{{result.answer3}}</th>
+            <td> {{result.prob3}} </td>
+        </tr>
+    </table>
+
+    {% endfor %}
+
+    <div align="center">
+        <button onclick="history.back()">Back</button>
+    </div>
+
+</body>
+
+</html>
