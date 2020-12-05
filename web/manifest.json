@@ -1,0 +1,29 @@
+{
+    "name": "Ask Your Question",
+    "version": "1.3",
+    "description": "This will infer Text VQA model. Ask Your Questions",
+    "background": {
+        "persistent": false,
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "browser_action": {
+        "default_icon": {
+            "16": "newtab_search16.png",
+            "32": "newtab_search32.png"
+        },
+        "default_title": "Take a screen shot you want to ask!"
+    },
+    "permissions": [
+        "activeTab",
+        "tabs"
+    ],
+    "icons": {
+        "16": "newtab_search16.png",
+        "32": "newtab_search32.png",
+        "48": "newtab_search48.png",
+        "128": "newtab_search128.png"
+    },
+    "manifest_version": 2
+}
