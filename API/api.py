@@ -276,7 +276,7 @@ def index():
     return render_template("main.html")
 
 
-@app.route("/result", method)
+@app.route("/result", methods=['POST', 'GET'])
 def result():
     if request.method == "POST":
         result = request.form.to_dict()
