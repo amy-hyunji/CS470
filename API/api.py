@@ -19,7 +19,7 @@ import torch.nn.functional as F
 import pandas as pd
 
 import torchvision.models as models
-import torchvision.transforms as transform
+import torchvision.transforms as transforms
 
 from PIL import Image
 from io import BytesIO
@@ -70,10 +70,10 @@ class MMFDemo:
         answer_processor_config = vqa_config.processors.answer_processor
 
         text_processor_config.params.vocab.vocab_file = (
-            "/content/model_data/vocabulary_100k.txt"
-        )
+            "/data2/home/jihye/Desktop/sam-textvqa/CS470/model_data/vocabulary_100k.txt"
+        ) ##
         answer_processor_config.params.vocab_file = (
-            "/content/model_data/answers_vqa.txt"
+            "/data2/home/jihye/Desktop/sam-textvqa/CS470/model_data/answers_vqa.txt"
         )
         # Add preprocessor as that will needed when we are getting questions from user
         self.text_processor = VocabProcessor(text_processor_config.params)
@@ -86,9 +86,10 @@ class MMFDemo:
         )
 
     def _build_pythia_model(self):
-        state_dict = torch.load("/content/model_data/pythia.pth")
+        state_dict = torch.load("/data2/home/jihye/Desktop/sam-textvqa/CS470/model_data/pythia.pth",
+                                map_location=torch.device("cpu"))
         model_config = self.config.model_config.pythia
-        model_config.model_data_dir = "/content/"
+        model_config.model_data_dir = "/data2/home/jihye/Desktop/sam-textvqa/CS470"
         model = Pythia(model_config)
         model.build()
         model.init_losses()
@@ -99,7 +100,7 @@ class MMFDemo:
             state_dict = self._multi_gpu_state_to_single(state_dict)
 
         model.load_state_dict(state_dict, strict=False)
-        model.to("cuda")
+        model.to("cpu")
         model.eval()
 
         return model
@@ -116,7 +117,7 @@ class MMFDemo:
         resnet152.eval()
         modules = list(resnet152.children())[:-2]
         self.resnet152_model = torch.nn.Sequential(*modules)
-        self.resnet152_model.to("cuda")
+        self.resnet152_model.to("cpu")
 
     def _multi_gpu_state_to_single(self, state_dict):
         new_sd = {}
@@ -146,7 +147,7 @@ class MMFDemo:
             sample.image_feature_1 = resnet_features
 
             sample_list = SampleList([sample])
-            sample_list = sample_list.to("cuda")
+            sample_list = sample_list.to("cpu")
 
             scores = self.pythia_model(sample_list)["scores"]
             scores = torch.nn.functional.softmax(scores, dim=1)
@@ -163,29 +164,30 @@ class MMFDemo:
                 answers.append(self.answer_processor.idx2word(top_indices[idx].item()))
 
         gc.collect()
-        torch.cuda.empty_cache()
+        #torch.cuda.empty_cache()
 
         return probs, answers
 
     def _build_detection_model(self):
 
-        cfg.merge_from_file("/content/model_data/detectron_model.yaml")
+        cfg.merge_from_file("/data2/home/jihye/Desktop/sam-textvqa/CS470/model_data/detectron_model.yaml")
         cfg.freeze()
 
         model = build_detection_model(cfg)
         checkpoint = torch.load(
-            "/content/model_data/detectron_model.pth", map_location=torch.device("cpu")
+            "/data2/home/jihye/Desktop/sam-textvqa/CS470/model_data/detectron_model.pth", map_location=torch.device("cpu")
         )
 
         load_state_dict(model, checkpoint.pop("model"))
 
-        model.to("cuda")
+        model.to("cpu")
         model.eval()
         return model
 
     def get_actual_image(self, image_path):
         if image_path.startswith("http"):
             path = requests.get(image_path, stream=True).raw
+            print(path)
         else:
             path = image_path
 
@@ -254,7 +256,7 @@ class MMFDemo:
 
         if img_transform.shape[0] == 1:
             img_transform = img_transform.expand(3, -1, -1)
-        img_transform = img_transform.unsqueeze(0).to("cuda")
+        img_transform = img_transform.unsqueeze(0).to("cpu")
 
         features = self.resnet152_model(img_transform).permute(0, 2, 3, 1)
         features = features.view(196, 2048)
@@ -264,7 +266,7 @@ class MMFDemo:
         im, im_scale = self._image_transform(image_path)
         img_tensor, im_scales = [im], [im_scale]
         current_img_list = to_image_list(img_tensor, size_divisible=32)
-        current_img_list = current_img_list.to("cuda")
+        current_img_list = current_img_list.to("cpu")
         with torch.no_grad():
             output = self.detection_model(current_img_list)
         feat_list = self._process_feature_extraction(output, im_scales, "fc6", 0.2)
@@ -276,7 +278,7 @@ def index():
     return render_template("main.html")
 
 
-@app.route("/result", method)
+@app.route("/result",methods=['POST','GET'])
 def result():
     if request.method == "POST":
         result = request.form.to_dict()
@@ -287,9 +289,9 @@ def result():
         probs, answers = demo.predict(image_url, search_sentence)
         return_dict = {}
         for i, (prob, answer) in enumerate(zip(probs, answers)):
-            return_dict[answer] = prob
+            return_dict[answer] = prob*100
             return_dict[f"answer{i}"] = answer
-            return_dict[f"prob{i}"] = prob
+            return_dict[f"prob{i}"] = prob*100
         result.update(return_dict)
         results = [result]
         return render_template("score.html", results=results)
