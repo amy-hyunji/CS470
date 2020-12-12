@@ -22,3 +22,7 @@ Details of each folder will be inside README of each folder
 
 ## ajax-flask(failed)
 - Codes to connect Javascript file and python file using ajax and flask
+
+## TextVQA folder
+- we refered to this git (https://github.com/yashkant/sam-textvqa/tree/main/data)
+- you can download best_model.tar about our experiments from this link (https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing)
