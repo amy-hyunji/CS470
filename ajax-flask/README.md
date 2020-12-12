@@ -27,3 +27,5 @@ cd vqa-maskrcnn-benchmark
 python setup.py build
 python setup.py develop
 ```
+## Limitaion
+- We tried to find a way to connect the JavaScript file and Python file, but it didn't work properly in the code we created.
