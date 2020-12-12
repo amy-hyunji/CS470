@@ -27,5 +27,12 @@ cd vqa-maskrcnn-benchmark
 python setup.py build
 python setup.py develop
 ```
+
+## Files
+- screenshot.html: Basic html files for creating Web page
+- script.js: JavaScript code to send data to the local server, receive results, and post them on the web page
+- test.py: Python code for checking the operation of ajax and flask
+- vqa.py: Python code to create a local server through flask. If it can be connected to script.js, it can receive data from script.js, make an reference through the Spatially Aware Multimodal Transformer, and send the results back to script.js.
+
 ## Explanation
 - We tried to find a way to connect the JavaScript file and Python file, but it didn't work properly in the code we created.
