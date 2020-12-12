@@ -35,6 +35,8 @@ In the case of finetune, you have to use another file, which is `train_fine.py`.
 --plus_layer "True"
 ```
 
+I tried more various models. But it's performances are not good. So I skipped the experiment list.
+
 In the case of layer + and changed encoder, it's hard to use pre-trained model. The other things are no matter. 
 As a proof of training models, I uploaded the jupyter notebooks(RUN.ipynb from the link above)
 It contains some cases about training models and checking time.
