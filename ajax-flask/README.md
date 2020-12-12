@@ -36,3 +36,8 @@ python setup.py develop
 
 ## Explanation
 - We tried to find a way to connect the JavaScript file and Python file, but it didn't work properly in the code we created.
+
+## How to use
+- Set the Google Chrome in the way shown on the CS470/web/README.md
+- Create a local server using "python test.py" or "python vqa.py".
+- Implement Chrome extenstion in the way shown on the CS470/web/README.md
