@@ -14,7 +14,32 @@ In the case of layer + and changed encoder, it's hard to adapt to use pre-traine
 the other things are no matter. 
 As a proof of training models, I uploaded the jupyter notebooks(RUN.ipynb from the link above)
 
-From `train_timeChecking.py`, you can check the time consumtion about each model.
+### From `train.py`, you can train the models.
+```
+!python train.py \
+--config configs/train-stvqa-eval-stvqa-c3_changed1.yml \
+--tag stvqa_changed1
+```
+
+In the case of finetune, you have to use another file, which is `train_fine.py`.
+
+```
+!python train_fine.py \
+--config configs/train-stvqa-eval-stvqa-c3-finetune.yml \
+--tag stvqa_finetune
+```
+
+
+### From `train_timeChecking.py`, you can check the time consumtion about each model.
+
+```
+!python train_timeChecking.py \
+--config configs/train-stvqa-eval-stvqa-c3-finetune.yml \
+--tag test_timeChecking \
+--plus_layer "True"
+```
+
+
 
 
 Spatially Aware Multimodal Transformers for TextVQA
