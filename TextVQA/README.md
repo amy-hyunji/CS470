@@ -14,6 +14,8 @@ In the case of layer + and changed encoder, it's hard to adapt to use pre-traine
 the other things are no matter. 
 As a proof of training models, I uploaded the jupyter notebooks(RUN.ipynb from the link above)
 
+From `train_timeChecking.py`, you can check the time consumtion about each model.
+
 
 Spatially Aware Multimodal Transformers for TextVQA
 ===================================================
