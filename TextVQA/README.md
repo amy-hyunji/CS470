@@ -1,16 +1,17 @@
 # Modified Testing SA-M4C model
 
-## about model (you can download from save folder : https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing )
-debug > baseline
-normal > normal
-changed1 > layer +
-changed2 > build
-finetune > changed encoder
+## about model 
+(you can download from save folder : https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing )
+- debug > baseline
+- normal > normal
+- changed1 > layer +
+- changed2 > build
+- finetune > changed encoder
+
 
 In the case of layer + and changed encoder, it's hard to adapt to use pre-trained model.
 the other thing is no matter. 
 As a proof of training models, I uploaded the jupyter notebooks(RUN.ipynb from the link above)
-
 
 
 
