@@ -1,4 +1,4 @@
-# Modified Testing SA-M4C model
+# Modified SA-M4C model
 
 ## about model 
 (you can download from save folder : https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing )
@@ -13,7 +13,6 @@ If you want to try to test the model, you have to download data from the [author
 In the case of layer + and changed encoder, it's hard to adapt to use pre-trained model.
 the other things are no matter. 
 As a proof of training models, I uploaded the jupyter notebooks(RUN.ipynb from the link above)
-
 
 
 Spatially Aware Multimodal Transformers for TextVQA
