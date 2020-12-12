@@ -1,0 +1,273 @@
+import argparse
+import logging
+import os
+import random
+from io import open
+from pprint import pprint
+
+import numpy as np
+import torch
+import yaml
+from easydict import EasyDict as edict
+from tqdm import tqdm
+
+from evaluator import Evaluator
+from sam.sa_m4c import SAM4C, BertConfig  ########################## change sam.sa_m4c_changing when we use finetuning version (about image encoder)
+from sam.task_utils import (clip_gradients, forward_model,
+                            get_optim_scheduler, load_datasets)
+from tools.registry import registry
+
+from timeit import default_timer as timer
+
+os.environ["CUDA_VISIBLE_DEVICES"]="1"   ######### setting just number of cuda device == 1 
+
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+    datefmt="%m/%d/%Y %H:%M:%S",
+    level=logging.INFO,
+)
+logger = logging.getLogger(__name__)
+
+
+def get_config():
+    # load command line args
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--num_train_epochs",
+        default=1,
+        type=int,
+        help="Total training epochs",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=0, help="Random seed for reproducibility"
+    )
+    parser.add_argument("--config", required=True, type=str, help="Experiment configuration file")
+
+    parser.add_argument(
+        "--tag", type=str, help="Experiment folder name", default="debug"
+    )
+
+    parser.add_argument("--pretrained_eval", default="", help="Path of pre-trained checkpoint")
+    parser.add_argument("--more_training",default=False,help="Do you want to train more at the point of the pre-trained checkpoint")
+    parser.add_argument("--only_eval",default=False,help="Do you want only to evaluate the parameter")
+    parser.add_argument("--plus_layer",default=False,help="Layer + case")
+    args = parser.parse_args()
+    
+    
+    # Load configuration
+    with open(args.config, "r") as f:
+        task_cfg = edict(yaml.safe_load(f))
+
+     #####
+    #set batch_size
+    task_cfg["batch_size"]=1
+    ######
+    
+    
+    # Todo: Move below code to another function
+    # Reproducibility seeds
+    seed = task_cfg["seed"]
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    logger.info("-" * 20 + "Command Line Config: " + "-" * 20)
+    print(pprint(vars(args)))
+    logger.info("-" * 20 + "Task File Config: " + "-" * 20)
+    print(pprint(task_cfg))
+
+    # Build save path
+    save_path = os.path.join(task_cfg["output_dir"], args.tag)
+    if not os.path.exists(save_path) and args.pretrained_eval == "":
+        os.makedirs(save_path)
+
+    # Dump all configs
+    with open(os.path.join(save_path, "command.txt"), "w") as f:
+        print(f"Command Line: \n {str(vars(args))} \n \n", file=f)
+        print(f"Config File: \n {str(vars(task_cfg))} \n \n", file=f)
+
+    # Add all configs to registry
+    registry.update(vars(args))
+    registry.update(task_cfg)
+
+    return task_cfg, args, save_path
+
+
+def main():
+    task_cfg, args, save_path = get_config()
+    checkpoint_path = os.path.join(save_path, "best_model.tar")        
+    base_lr = task_cfg["lr"]
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    n_gpu = torch.cuda.device_count()
+    logger.info(f"Device: {device}, Numer of GPUs: {n_gpu}")
+    
+    if args.only_eval!=False: 
+        dataloaders = load_datasets(task_cfg, ["val"])
+    else:
+        dataloaders = load_datasets(task_cfg, ["train", "val", "test"])
+
+    mmt_config = BertConfig.from_dict(task_cfg["SA-M4C"])
+    text_bert_config = BertConfig.from_dict(task_cfg["TextBERT"])
+    model = SAM4C(mmt_config, text_bert_config,int(task_cfg["lr_scale_frcn"])) ###################
+
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logger.info(f"Training Parameters: {trainable_params}")
+    optimizer_grouped_parameters = model.get_optimizer_parameters(base_lr)
+    print(len(list(model.named_parameters())), len(optimizer_grouped_parameters))
+
+    optimizer, warmup_scheduler = get_optim_scheduler(
+        task_cfg, optimizer_grouped_parameters, base_lr
+    )
+    start_iter_id, global_step, start_epoch = 0, 0, 0
+    model.to(device)
+    for state in optimizer.state.values():
+        for k, v in state.items():
+            if torch.is_tensor(v):
+                state[k] = v.cuda()
+
+    if n_gpu > 1:
+        model = torch.nn.DataParallel(model)
+
+    # When running only evaluation
+    if args.pretrained_eval != "" and args.more_training==False:
+        logger.info(
+            f"Dumping Evaluation results at: {os.path.dirname(args.pretrained_eval)}"
+        )
+        return args.pretrained_eval, model, dataloaders
+
+    # This validation score is used for model-saving.
+    if args.more_training==False:
+        best_val_step, best_val_score = -1, -1
+    else:
+        pretrained=torch.load(checkpoint_path)
+        #model.load_state_dict(pretrained["model_state_dict"])
+        if hasattr(model, "module"):
+            model.module.load_state_dict(pretrained["model_state_dict"])
+        else:
+            model.load_state_dict(pretrained["model_state_dict"])
+        best_val_step = -1
+        best_val_score = evaluate(dataloaders,task_cfg,device,model)
+    
+    if args.only_eval!=False or args.plus_layer !=False: 
+        val_score=evaluate(dataloaders,task_cfg,device,model,mode="val")
+        print("\n\n\ evaluation [val]:",val_score)
+        return args.pretrained_eval, model, dataloaders
+        
+    
+    loss_values, score_values = [], []
+    median_num_iter = len(dataloaders["train"])
+
+    # Train loop
+    model.train()
+
+    for epoch_id in tqdm(range(start_epoch, args.num_train_epochs), desc="Epoch"):
+        for step in tqdm(range(median_num_iter), desc="Iters"):
+            assert model.training
+            iter_id = start_iter_id + step + (epoch_id * median_num_iter)
+
+            loss, score, _, _ = forward_model(
+                task_cfg, device, model, dataloaders, "train"
+            )
+
+            # Compute gradients
+            loss.backward()
+            clip_gradients(model, task_cfg["max_grad_norm"])
+
+            # Apply and reset gradients
+            optimizer.step()
+            warmup_scheduler.step()
+            model.zero_grad()
+
+            # Increment loggers
+            global_step += 1
+            loss_values.append(loss)
+            score_values.append(score)
+
+            # Handle logging
+            if step % 20 == 0 and step != 0:
+                loss_avg, score_avg = float(sum(loss_values) / len(loss_values)), float(
+                    sum(score_values) / len(score_values)
+                )
+                loss_values, score_values = [], []
+                log_str = f"Epoch: {epoch_id}: Iter: {iter_id};  loss = {loss_avg}; accuracy  = {score_avg}"
+                if step % 100 == 0:
+                    log_str += f"\n lr rates = {[float(grp['lr']) for grp in optimizer.param_groups]}"
+                logger.info(log_str)
+
+        # Evaluate after every epoch
+        curr_val_score = evaluate(
+            dataloaders,
+            task_cfg,
+            device,
+            model,
+        )
+        logger.info(
+            f"[Validation] Current VQA: {curr_val_score} at {global_step} | Best VQA: {best_val_score} at {best_val_step}"
+        )
+
+        if curr_val_score > best_val_score:
+            logger.info(f"Saving Checkpoint: {checkpoint_path}")
+            #model_to_save = model.module if hasattr(model, "module") else model
+            best_val_score, best_val_step = curr_val_score, global_step
+            torch.save(
+                {
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "warmup_scheduler_state_dict": warmup_scheduler.state_dict(),
+                    "global_step": global_step,
+                    "current_val_score": curr_val_score,
+                    "epoch_id": epoch_id,
+                },
+                checkpoint_path,
+            )
+
+    print(
+        f"Best Validation Score: {best_val_score}, Best Validation Epoch: {best_val_step}"
+    )
+    return checkpoint_path, model, dataloaders
+
+
+def evaluate(
+    dataloaders,
+    task_cfg,
+    device,
+    model,
+    mode="val"
+):
+    scores, batch_sizes = [], []
+    model.eval()
+    if mode=="test":
+        desc="Test"
+    else:
+        desc="Valication"
+    with torch.no_grad():
+        start = timer()
+        for batch_dict in tqdm(dataloaders[mode], desc=desc):
+            loss, score, batch_size, _ = forward_model(
+                task_cfg, device, model, batch_dict=batch_dict
+            )
+#             scores.append(score * batch_size)
+#             batch_sizes.append(batch_size)
+        end = timer()
+        print("\n\n\n time checking ( per 1 image) :",str((end-start)/2638),"sec")
+
+    model.train()
+    return 0 #sum(scores) / sum(batch_sizes)
+
+
+if __name__ == "__main__":
+    checkpoint_path, model, dataloaders = main()
+    
+    _, args, _ = get_config()
+    if args.only_eval==False or args.puls_layer==False: 
+        assert os.path.exists(checkpoint_path)
+
+        task = registry["val_on"][0]
+        evaluator = Evaluator(checkpoint_path, model, dataloaders, task)
+
+
+        # Beam search code has developed a problem and will be fixed in future!
+        for beam_size in [1]:
+            for split in ["test", "val"]:
+                evaluator.evaluate_no_beam(split=split)
+            

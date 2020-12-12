@@ -86,8 +86,12 @@ class MMFDemo:
         )
 
     def _build_pythia_model(self):
+<<<<<<< HEAD
         state_dict = torch.load("/data2/home/jihye/Desktop/sam-textvqa/CS470/model_data/pythia.pth",
                                 map_location=torch.device("cpu"))
+=======
+        state_dict = torch.load("/content/model_data/pythia.pth", map_location=torch.device("cpu"))
+>>>>>>> 57af1bf27f0f50058c004409a92c49c15d8853f2
         model_config = self.config.model_config.pythia
         model_config.model_data_dir = "/data2/home/jihye/Desktop/sam-textvqa/CS470"
         model = Pythia(model_config)
@@ -164,7 +168,10 @@ class MMFDemo:
                 answers.append(self.answer_processor.idx2word(top_indices[idx].item()))
 
         gc.collect()
+<<<<<<< HEAD
         #torch.cuda.empty_cache()
+=======
+>>>>>>> 57af1bf27f0f50058c004409a92c49c15d8853f2
 
         return probs, answers
 
@@ -278,7 +285,11 @@ def index():
     return render_template("main.html")
 
 
+<<<<<<< HEAD
 @app.route("/result",methods=['POST','GET'])
+=======
+@app.route("/result", methods=['POST', 'GET'])
+>>>>>>> 57af1bf27f0f50058c004409a92c49c15d8853f2
 def result():
     if request.method == "POST":
         result = request.form.to_dict()
@@ -289,9 +300,15 @@ def result():
         probs, answers = demo.predict(image_url, search_sentence)
         return_dict = {}
         for i, (prob, answer) in enumerate(zip(probs, answers)):
+<<<<<<< HEAD
             return_dict[answer] = prob*100
             return_dict[f"answer{i}"] = answer
             return_dict[f"prob{i}"] = prob*100
+=======
+            return_dict[answer] = prob * 100
+            return_dict[f"answer{i}"] = answer
+            return_dict[f"prob{i}"] = prob * 100
+>>>>>>> 57af1bf27f0f50058c004409a92c49c15d8853f2
         result.update(return_dict)
         results = [result]
         return render_template("score.html", results=results)

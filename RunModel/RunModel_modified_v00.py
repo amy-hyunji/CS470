@@ -10,6 +10,7 @@ import torch
 from easydict import EasyDict as edict
 
 from evaluator import Evaluator
+from pip import __main__
 from sam.sa_m4c import SAM4C, BertConfig
 from sam.datasets import DatasetMapTrain
 from sam.task_utils import (clip_gradients, forward_model,
@@ -24,10 +25,11 @@ from PIL import Image
 from googleapiclient.discovery import build
 from io import BytesIO
 import base64
+import yaml
 
-#torch2trt
+# torch2trt
 import torch
-#from torch2trt import torch2trt
+# from torch2trt import torch2trt
 
 import getpass
 
@@ -49,8 +51,8 @@ class RunModel:
         #         np.random.seed(seed)
         #         torch.manual_seed(seed)
 
-        self.task_cfg["batch_size"]=1
-        
+        self.task_cfg["batch_size"] = 1
+
         # Add all configs to registry
         registry.update({"pretrained_eval": textVQA_pretrained, "config": textVQA_config})
         registry.update(self.task_cfg)
@@ -66,15 +68,15 @@ class RunModel:
 
         self.model = SAM4C(mmt_config, text_bert_config)
         self.model.to(self.device)
-        
-        pretrained=torch.load(self.textVQA_pretrained)
+
+        pretrained = torch.load(self.textVQA_pretrained)
         self.model.load_state_dict(pretrained["model_state_dict"])
         self.model.eval()
 
-        if n_gpu > 1:
+        if self.n_gpu > 1:
             self.model = torch.nn.DataParallel(self.model)
 
-    def textVQA(self, question, img_path):
+    def textvqa(self, question, img_path):
         """
         images : input image files
         Using self.textVQA_pretrained, self.model
@@ -91,7 +93,7 @@ class RunModel:
         dset = hf.create_dataset('default', data=img_np)
         hf.close()
         self.task_cfg.textvqa_obj = save_path
-        self.task_cfg.textvqa_ocr = save_path ### 이 부분이 맞는지 모르겠다. textvqa_dataset.py의 135번째 줄 참고
+        self.task_cfg.textvqa_ocr = save_path  ### 이 부분이 맞는지 모르겠다. textvqa_dataset.py의 135번째 줄 참고
         ####################
 
         ##### get ocr tokens
@@ -104,7 +106,8 @@ class RunModel:
         ###################
 
         ##### TEST(우리의 문제에 맞게 추후에 변경할 부분) #######
-        dataloaders = load_datasets(self.task_cfg, ["test"], question, image_height, image_width, tokens) #우선 dataset을 통해 batch를 만들었다. batch size = 1
+        dataloaders = load_datasets(self.task_cfg, ["test"], question, image_height, image_width,
+                                    tokens)  # 우선 dataset을 통해 batch를 만들었다. batch size = 1
         #####################################################
 
         beam_size = 5  # the best beam_size in the Paper
@@ -114,9 +117,10 @@ class RunModel:
 
         with torch.no_grad():
             for batch in dataloaders["test"]:
-                loss,score,_,predictions = forward_model(self.task_cfg, self.device, self.model, None, "pred", batch, True)
-                
-        return predictions # deal with just one image at one time.
+                loss, score, _, predictions = forward_model(self.task_cfg, self.device, self.model, None, "pred", batch,
+                                                            True)
+
+        return predictions  # deal with just one image at one time.
 
     def _get_image_bytes(self, image_path):
         image_path = image_path
@@ -126,7 +130,6 @@ class RunModel:
                 img.save(output, 'JPEG')
             data = base64.b64encode(output.getvalue()).decode('utf-8')
         return data
-
 
     def _get_ocr_tokens(self, image_path):
         vision_service = build("vision", "v1", developerKey=APIKEY)
@@ -158,15 +161,15 @@ class RunModel:
 
 # 원문코드의 sam/task_utils.py에 있는 함수들
 def get_loader(task_cfg, tokenizer, split, question, image_height, image_width, tokens):
-
     dataset_names = task_cfg[f"{split}_on"]
     assert isinstance(dataset_names, list)
 
     datasets = []
     for dset in dataset_names:
         _dataset = DatasetMapTrain[dset](
-            split=split, tokenizer=tokenizer, task_cfg=task_cfg, question=question, image_height=image_height, image_width=image_width, tokens=tokens
-        )     # sam/datasets/testvqa_dataset.py
+            split=split, tokenizer=tokenizer, task_cfg=task_cfg, question=question, image_height=image_height,
+            image_width=image_width, tokens=tokens
+        )  # sam/datasets/testvqa_dataset.py
         datasets.append(_dataset)
 
     if len(datasets) > 1:
@@ -178,13 +181,14 @@ def get_loader(task_cfg, tokenizer, split, question, image_height, image_width, 
     loader = DataLoader(
         dataset_instance,
         sampler=random_sampler if split == "train" else None,
-        batch_size=1,#batch size를 1로 설정하였다.
+        batch_size=1,  # batch size를 1로 설정하였다.
         num_workers=task_cfg["num_workers"],
         pin_memory=True,
         shuffle=False,
         drop_last=False,
-    )       # 여기서 dataloader 만든다. 우리 img랑 question 입력하는 방법?
+    )  # 여기서 dataloader 만든다. 우리 img랑 question 입력하는 방법?
     return loader
+
 
 def load_datasets(task_cfg, splits, question, image_height, image_width, tokens):
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
@@ -194,6 +198,7 @@ def load_datasets(task_cfg, splits, question, image_height, image_width, tokens)
     return loaders
 
 
-if __mian__=="__name__":
-    model = RunModel(textVQA_config="configs/train-stvqa-eval-stvqa-c3.yml", textVQA_pretrained="data/pretrained-models/best_model.tars")
-    print(model.textVQA(question="What is this?",img_path="tools/sam-textvqa-large.png"))
+if __name__ == "__main__":
+    model = RunModel(textVQA_config="configs/train-stvqa-eval-stvqa-c3.yml",
+                     textVQA_pretrained="data/pretrained-models/best_model.tars")
+    print(model.textvqa(question="What is this?", img_path="tools/sam-textvqa-large.png"))
