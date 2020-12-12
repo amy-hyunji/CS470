@@ -8,9 +8,10 @@
 - changed2 > build
 - finetune > changed encoder
 
+If you want to try to test the model, you have to download data from the [author's link](https://www.dropbox.com/sh/dk6oubjlt2x7w0h/AAAKExm33IKnVe8mkC4tOzUKa)
 
 In the case of layer + and changed encoder, it's hard to adapt to use pre-trained model.
-the other thing is no matter. 
+the other things are no matter. 
 As a proof of training models, I uploaded the jupyter notebooks(RUN.ipynb from the link above)
 
 
