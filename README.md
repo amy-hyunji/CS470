@@ -1,19 +1,19 @@
 # CS470
-CS470 final project for Team 32
-Implementation of VQA and TextVQA for blind people
-Details of each folder will be inside README of each folder
+- CS470 final project for **Team 32**
+- Implementation of VQA and TextVQA for blind people
+- Details of each folder will be inside README of each folder
 
 ## API folder 
 - Codes for flask api
 - Infer VQA model
 
-## web folder
+## Web folder
 - Codes for chrome extension api
 - Not yet done with inferring model due to problem with onnx. Details will be in report.
 
 ## TextVQA folder
-- we refered to this git (https://github.com/yashkant/sam-textvqa/tree/main/data)
-- you can download best_model.tar about our experiments from this link (https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing)
+- we refered to this git: [SAM_TEXTVQA](https://github.com/yashkant/sam-textvqa/tree/main/data)
+- you can download best_model.tar about our experiments from this [link](https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing)
 
 ## convert_pt2onnx.py
 - Code to convert pytorch checkpoint to onnx
