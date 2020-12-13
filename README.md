@@ -14,6 +14,7 @@
 ## TextVQA folder
 - we refered to this git: [SAM_TEXTVQA](https://github.com/yashkant/sam-textvqa/tree/main/data)
 - you can download best_model.tar about our experiments from this [link](https://drive.google.com/drive/folders/1seYWDxdAlwcFCU1j7W1EvdG4PoRX9KJX?usp=sharing)
+- paper: [link](https://arxiv.org/pdf/2007.12146.pdf)
 
 ## convert_pt2onnx.py
 - Code to convert pytorch checkpoint to onnx
