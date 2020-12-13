@@ -37,3 +37,10 @@ python setup.py develop
 
 - input:    image url and question
 - output:   top 3 prediction and it's prediction score
+
+### Pythia Model
+- paper `https://arxiv.org/pdf/1807.09956.pdf`
+- codes `https://github.com/amy-hyunji/pythia-1`
+- pretrained model 
+  `wget -O ~/CS470/model_data/pythia.pth https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth`
+  `wget -O ~/CS470/model_data/pythia.yaml https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.yml`
