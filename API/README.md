@@ -1,6 +1,9 @@
 # README for API folder
 
 ### Setting
+
+**Make sure directories are at the right place**
+
 ```
 cd CS470
 mkdir model_data
@@ -39,10 +42,7 @@ python setup.py develop
 - output:   top 3 prediction and it's prediction score
 
 ### Pythia Model
-- paper `https://arxiv.org/pdf/1807.09956.pdf`
-- codes `https://github.com/amy-hyunji/pythia-1`
-- pretrained model 
-  ```
-  wget -O ~/CS470/model_data/pythia.pth https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth
-  wget -O ~/CS470/model_data/pythia.yaml https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.yml
-  ```
+- paper [link](https://arxiv.org/pdf/1807.09956.pdf)
+- codes [link](https://github.com/amy-hyunji/pythia-1)
+- pretrained model [link](https://dl.fbaipublicfiles.com/pythia/pretrained_models/vqa2/pythia_train_val.pth)
+ 
